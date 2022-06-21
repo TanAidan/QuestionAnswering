@@ -349,3 +349,6 @@ args = {
     "epislon": 1e-8
 }
 torch.save(args, os.path.join(output_dir, 'training_args.bin'))
+
+wandb.save(output_dir + "*")
+
