@@ -1,0 +1,3 @@
+git+https://d46e892a5b7e295d7d71adc2b1a7a62f7a6077b5@github.com/luther-ai/humanai-common.git@v0.0.62
+elasticsearch-dsl~=7.3.0
+boto3
