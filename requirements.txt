@@ -1,14 +1,12 @@
 git+https://d46e892a5b7e295d7d71adc2b1a7a62f7a6077b5@github.com/luther-ai/humanai-common.git@v0.0.62
 elasticsearch-dsl~=7.3.0
 boto3
-
-dataclasses~=0.6
+dataclasses~=0.6d
 wandb~=0.12.18
 typing~=3.7.4.3
 pandas~=1.4.2
 seaborn~=0.11.2
 numpy~=1.22.4
 matplotlib~=3.5.2
-torch~=1.11.0
 nltk~=3.7
 transformers~=4.20.0

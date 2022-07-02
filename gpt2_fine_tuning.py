@@ -14,14 +14,14 @@ from torch.utils.data.dataset import random_split
 
 torch.manual_seed(42)
 
-from transformers import GPT2LMHeadModel, GPT2Tokenizer, GPT2Config, GPT2LMHeadModel
+from transformers import GPT2LMHeadModel, GPT2Tokenizer, GPT2Config
 from transformers import AdamW, get_linear_schedule_with_warmup
 
 import nltk
 
 import wandb
 
-wandb.init(project="Transformer-Question-Answering", entity="personal-ai")
+run = wandb.init(project="Transformer-Question-Answering", entity="personal-ai")
 
 wandb.config = {
     "learning_rate": 5e-4,
@@ -58,8 +58,8 @@ class GPT2Dataset(Dataset):
 
 nltk.download('punkt')
 
-file_name = "../../datasets/squad2.0/squad_csv.csv"
-batch_size = 2
+file_name = "squad_csv.csv"
+batch_size = 32
 df = pd.read_csv(file_name)
 df.dropna(inplace=True)
 questions = df.question.copy()
@@ -204,16 +204,16 @@ for epoch_i in range(0, epochs):
 
             model.eval()
 
-            sample_outputs = model.generate(
-                bos_token_id=random.randint(1, 30000),
-                do_sample=True,
-                top_k=50,
-                max_length=200,
-                top_p=0.95,
-                num_return_sequences=1
-            )
-            for i, sample_output in enumerate(sample_outputs):
-                print("{}: {}".format(i, tokenizer.decode(sample_output, skip_special_tokens=True)))
+            # sample_outputs = model.generate(
+            #     pad_token_id=50257,
+            #     do_sample=True,
+            #     top_k=50,
+            #     max_length=200,
+            #     top_p=0.95,
+            #     num_return_sequences=1
+            # )
+            # for i, sample_output in enumerate(sample_outputs):
+            #     print("{}: {}".format(i, tokenizer.decode(sample_output, skip_special_tokens=True)))
 
             model.train()
 
@@ -259,7 +259,8 @@ for epoch_i in range(0, epochs):
             outputs = model(b_input_ids,
                             #                            token_type_ids=None,
                             attention_mask=b_masks,
-                            labels=b_labels)
+                            labels=b_labels
+                            )
 
             loss = outputs[0]
 
@@ -290,39 +291,6 @@ print("")
 print("Training complete!")
 print("Total training took {:} (h:mm:ss)".format(format_time(time.time() - total_t0)))
 
-# Display floats with two decimal places.
-pd.set_option('precision', 2)
-
-# Create a DataFrame from our training statistics.
-df_stats = pd.DataFrame(data=training_stats)
-
-# Use the 'epoch' as the row index.
-df_stats = df_stats.set_index('epoch')
-
-# A hack to force the column headers to wrap.
-# df = df.style.set_table_styles([dict(selector="th",props=[('max-width', '70px')])])
-
-# Display the table.
-
-# Use plot styling from seaborn.
-sns.set(style='darkgrid')
-
-# Increase the plot size and font size.
-sns.set(font_scale=1.5)
-plt.rcParams["figure.figsize"] = (12, 6)
-
-# Plot the learning curve.
-plt.plot(df_stats['Training Loss'], 'b-o', label="Training")
-plt.plot(df_stats['Valid. Loss'], 'g-o', label="Validation")
-
-# Label the plot.
-plt.title("Training & Validation Loss")
-plt.xlabel("Epoch")
-plt.ylabel("Loss")
-plt.legend()
-plt.xticks([1, 2, 3, 4])
-
-plt.show()
 
 # Saving best-practices: if you use defaults names for the model, you can reload it using from_pretrained()
 
@@ -333,8 +301,6 @@ if not os.path.exists(output_dir):
     os.makedirs(output_dir)
 
 print("Saving model to %s" % output_dir)
-
-# Save a trained model, configuration and tokenizer using `save_pretrained()`.
 # They can then be reloaded using `from_pretrained()`
 model_to_save = model.module if hasattr(model, 'module') else model  # Take care of distributed/parallel training
 model_to_save.save_pretrained(output_dir)
@@ -349,5 +315,9 @@ args = {
 }
 torch.save(args, os.path.join(output_dir, 'training_args.bin'))
 
-wandb.save(output_dir + "*")
+wandb.save(output_dir)
+
+trained_model_artifact = wandb.Artifact('QuestionLMV2', type="model", description='trained baseline for QLM V2')
+trained_model_artifact.add_dir(output_dir)
+run.log_artifact(trained_model_artifact)
 
