@@ -8,8 +8,8 @@ from DTO import QAObject
 
 
 def main():
-    identity_id_list = {8284: "metaverse", 8339: "creatoreconomy", 8070: "demolijin", 8148: "demochrisdixon",
-                        8349: "demoaliadbaal", 8062: "web3", 8340: "sharon", 8012: "kary", 8025: "mikelongmeadow"}
+    # fetch list of identity ids from your database to train on
+    identity_id_list = {}
 
     for identity_id in identity_id_list:
         es_helper = elasticSearchHelper(identity_id)
@@ -31,12 +31,9 @@ def elasticSearchHelper(identity_id):
         q.question_query()
         es_connection = ElasticSearchConnection()
         es_response = es_connection.send(q.search)
-        # count = es_connection.count(q.search)
-        # print("Count", count)
     except Exception as e:
         raise e
 
-    # constructs memblock metadata payload from es response
     try:
         memblock_questions = ElasticQuestionsResponse(es_response).get_results()
     except Exception as e:
